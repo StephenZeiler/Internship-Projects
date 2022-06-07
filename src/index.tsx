@@ -7,6 +7,7 @@ import { Component } from 'react';
 function Square(){
   var value = false;
   const [count, setCount] = useState(0);
+  console.log(1)
   return(
     
     <button> 
