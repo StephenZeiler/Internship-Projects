@@ -9,7 +9,7 @@ function Square(){
   const [count, setCount] = useState(0);
   return(
     
-    <button onClick={count: 0}> 
+    <button> 
     </button>
   
 
