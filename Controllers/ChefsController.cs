@@ -9,72 +9,74 @@ namespace PracticeAPI.Controllers;
 [Route("[controller]")]
 public class ChefsController : ControllerBase
 {
-    List<Chef> chefs = new List<Chef>{
-        new Chef(0, 5, "Spaghetti", "David", "Wernery"),
-        new Chef(1, 10, "Pizza", "Zac", "Cooper"),
-        new Chef(1, 10, "Burger", "Krescens", "Kok")
-    };
+
+    private RestaurantContext _chefContext;
+
+    public ChefsController(RestaurantContext context)
+    {
+        _chefContext = context;
+    }
 
     [HttpGet]
-    public IActionResult Get()
+    public ActionResult<IEnumerable<Chef>> Get()
     {
-
-        return (
-            Ok(chefs)
-            );
+        return _chefContext.Chef.ToList();
     }
+
     [HttpGet("{Id}")]
-    public IActionResult GetById(int id)
+    public ActionResult<IEnumerable<Chef>> GetById(int id)
     {
-        return Ok(chefs.Where(chefs => chefs.Id == id));
+        List<Chef> chefs = new List<Chef>();
+        var chef = _chefContext.Chef.FirstOrDefault(t => t.Id == id);
+        Console.WriteLine(chef);
+        if (chef != null)
+        {
+            chefs.Add(chef);
+        }
 
+        return chefs.ToList();
     }
+
     [HttpPost]
-    public IActionResult AddChefs([FromBody] Chef chef)
+    public void Post([FromBody] Chef values)
     {
-        chefs.Add(chef);
-
-        return
-        Created("/Chefs/{id}", chefs);
+        _chefContext.Chef.Add(values);
+        _chefContext.SaveChanges();
     }
 
+    [HttpDelete("{id}")]
+    public void Delete(int id)
+    {
+        var chef = _chefContext.Chef.FirstOrDefault(t => t.Id == id);
+        if (chef != null)
+        {
+            _chefContext.Chef.Remove(chef);
+            _chefContext.SaveChanges();
+        }
+    }
     [HttpPut("{Id}")]
-    public IActionResult ReplaceChefs([FromBody] Chef chef)
+    public ActionResult<IEnumerable<Chef>> ReplaceChefs(int id)
     {
-        var chefRemove = chefs.Where(chefs => chefs.Id == chef.Id).FirstOrDefault();
-        chefs.Remove(chefRemove);
-        chefs.Add(chefRemove);
-        return
-        Ok(chefs);
-
+        var chef = _chefContext.Chef.FirstOrDefault(t => t.Id == id);
+        List<Chef> chefs = new List<Chef>();
+        if (chefs != null)
+        {
+            chefs.Add(chef);
+        }
+        return Ok(chefs);
     }
-    [HttpPut("{Id}/ChefName")]
-    public IActionResult ReplaceChefs(int id, [FromBody] Chef chef, string chefName)
-    {
-        var chefEdit = chefs.Where(chefs => chefs.Id == chef.Id).FirstOrDefault();
-        chefs.Remove(chefEdit);
-        chefEdit.FirstName = chefName;
-        chefs.Add(chefEdit);
-        return
-        Ok(chefs);
 
-    }
     [HttpPatch("{Id}")]
-    public IActionResult UpdateChefs([FromBody] Chef chef)
+    public ActionResult<IEnumerable<Chef>> UpdateChef([FromBody] Chef chef)
     {
-        var chefPatch = chefs.Where(chefs => chefs.Id == chef.Id).FirstOrDefault();
-        chefs[chefPatch.Id] = chef;
-        return
-        Ok(chefs);
-    }
-
-    [HttpDelete("{Id}")]
-    public IActionResult DeleteChefsById([FromBody] Chef chef)
-    {
-        var chefsDelete = chefs.Where(chefs => chefs.Id == chef.Id).FirstOrDefault();
-        chefs.Remove(chefsDelete);
-        return
-        Ok(chefs);
+        List<Chef> chefs = new List<Chef>();
+        if (chefs != null)
+        {
+            chefs.Add(chef);
+            var chefPatch = chefs.Where(chefs => chefs.Id == chef.Id).FirstOrDefault();
+            chefs[chefPatch.Id] = chef;
+        }
+        return Ok(chefs);
     }
 }
 

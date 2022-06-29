@@ -9,73 +9,73 @@ namespace PracticeAPI.Controllers;
 [Route("[controller]")]
 public class DishesController : ControllerBase
 {
-    List<Dish> dishes = new List<Dish>{ //why cant I add dishes to list using add or listing their names?? 
-        new Dish(0, 60, new string[] {"tomatoes", "onions", "ground beef", "marinara", "cheese"}, "prep, cook, eat after 10 minutes", "Spaghetti"),
-        new Dish(1, 25, new string[] {"tomatoes", "pepperoni", "olives", "marinara", "peppers"}, "perheat oven, cook, enjoy!", "Pizza"),
-        new Dish(2, 35, new string[] {"tomatoes", "lettuce", "mustard", "ketchup", "bun", "ground beef"}, "preheat grill, cook, add condiments, eat", "Burger")
-    };
+    private RestaurantContext _dishContext;
+
+    public DishesController(RestaurantContext context)
+    {
+        _dishContext = context;
+    }
 
     [HttpGet]
-    public IActionResult Get()
+    public ActionResult<IEnumerable<Dish>> Get()
     {
-
-        return (
-            Ok(dishes)
-            );
+        return _dishContext.Dish.ToList();
     }
+
     [HttpGet("{Id}")]
-    public IActionResult GetById(int id)
+    public ActionResult<IEnumerable<Dish>> GetById(int id)
     {
-        return Ok(dishes.Where(dishes => dishes.Id == id));
+        List<Dish> dishes = new List<Dish>();
+        var dish = _dishContext.Dish.FirstOrDefault(t => t.Id == id);
+        Console.WriteLine(dish);
+        if (dish != null)
+        {
+            dishes.Add(dish);
+        }
 
+        return dishes.ToList();
     }
+
     [HttpPost]
-    public IActionResult AddDishes([FromBody] Dish dish)
+    public void Post([FromBody] Dish values)
     {
-        dishes.Add(dish);
-
-        return
-        Created("/Dishes/{id}", dishes);
+        _dishContext.Dish.Add(values);
+        _dishContext.SaveChanges();
     }
 
+    [HttpDelete("{id}")]
+    public void Delete(int id)
+    {
+        var dish = _dishContext.Dish.FirstOrDefault(t => t.Id == id);
+        if (dish != null)
+        {
+            _dishContext.Dish.Remove(dish);
+            _dishContext.SaveChanges();
+        }
+    }
     [HttpPut("{Id}")]
-    public IActionResult ReplaceDishes([FromBody] Dish dish)
+    public ActionResult<IEnumerable<Dish>> ReplaceDishes(int id)
     {
-        var dishRemove = dishes.Where(dishes => dishes.Id == dish.Id).FirstOrDefault();
-        dishes.Remove(dishRemove);
-        dishes.Add(dishRemove);
-        return
-        Ok(dishes);
-
+        var dish = _dishContext.Dish.FirstOrDefault(t => t.Id == id);
+        List<Dish> dishes = new List<Dish>();
+        if (dishes != null)
+        {
+            dishes.Add(dish);
+        }
+        return Ok(dishes);
     }
-    [HttpPut("{Id}/DishName")]
-    public IActionResult ReplaceDishes(int id, [FromBody] Dish dish, string dishName)
-    {
-        var dishEdit = dishes.Where(dishes => dishes.Id == dish.Id).FirstOrDefault();
-        dishes.Remove(dishEdit);
-        dishEdit.DishName = dishName;
-        dishes.Add(dishEdit);
-        return
-        Ok(dishes);
 
-    }
     [HttpPatch("{Id}")]
-    public IActionResult UpdateDishes([FromBody] Dish dish)
+    public ActionResult<IEnumerable<Dish>> UpdateDishes([FromBody] Dish dish)
     {
-        var dishPatch = dishes.Where(dishes => dishes.Id == dish.Id).FirstOrDefault();
-        dishes[dishPatch.Id] = dish;
-        return
-        Ok(dishes);
-    }
-    [HttpDelete("{Id}")]
-    public IActionResult DeleteDishesById([FromBody] Dish dish)
-    {
-        var dishesDelete = dishes.Where(dishes => dishes.Id == dish.Id).FirstOrDefault();
-        dishes.Remove(dishesDelete);
-        Console.WriteLine(dishes.Count);
-
-        return
-        Ok(dishes);
+        List<Dish> dishes = new List<Dish>();
+        if (dishes != null)
+        {
+            dishes.Add(dish);
+            var dishPatch = dishes.Where(dishes => dishes.Id == dish.Id).FirstOrDefault();
+            dishes[dishPatch.Id] = dish;
+        }
+        return Ok(dishes);
     }
 }
 
